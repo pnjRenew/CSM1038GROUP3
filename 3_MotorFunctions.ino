@@ -1,7 +1,7 @@
 
 //  Example code to control the robot with functions
 //  By Ryan Hughes 2019
-
+//  Adapted by Group 3 of CSM1038 in October-December 2021
 // ----------------------------------------------------------------------------------------------------------- //
 
 //  This example covers:
@@ -23,12 +23,13 @@
 
 //--------------------------------------------------------------------------
 
-#define echoPin 2 // attach pin D2 Arduino to pin Echo of HC-SR04  - pasted in
-#define trigPin 3 //attach pin D3 Arduino to pin Trig of HC-SR04 - pasted in
+// definitions for ultrasonic sensor connections
+#define echoPin 2 // attach pin D2 Arduino to pin Echo of HC-SR04
+#define trigPin 3 // attach pin D3 Arduino to pin Trig of HC-SR04
 
 // defines variables
-long duration; // variable for the duration of sound wave travel - pasted in
-int distance; // variable for the distance measurement - pasted in
+long duration; // variable for the duration of sound wave travel
+int distance; // variable for the distance measurement
 
 
 
@@ -40,9 +41,10 @@ int distance; // variable for the distance measurement - pasted in
 //   no parameters passed in
 //
 //   returns: none
+//  adapted by Group 3 of CSM1038 Oct-Dec 2021
 //---------------------------------------------------------------------------
 
-void setup() {                               // The setup routine beigns (running only once).
+void setup() {                               // The setup routine begins (running only once).
 
   pinMode(motorRight, OUTPUT);
   pinMode(motorLeft, OUTPUT);                // The previously defined pins are then set to OUTPUTs to control the speed.
@@ -51,8 +53,8 @@ void setup() {                               // The setup routine beigns (runnin
   pinMode(directionLeftHigh, OUTPUT);
   pinMode(directionLeftLow, OUTPUT);         // And to control the direction.
 
-  pinMode(trigPin, OUTPUT); // Sets the trigPin as an OUTPUT - pasted in
-  pinMode(echoPin, INPUT); // Sets the echoPin as an INPUT - pasted in
+  pinMode(trigPin, OUTPUT); // Sets the trigPin as an OUTPUT for ultrasonic use
+  pinMode(echoPin, INPUT); // Sets the echoPin as an INPUT for ultrasonic use
 
   Serial.begin(9600);                        // The Serial communication line is initiated to help check for issues or "debug"
 
@@ -68,10 +70,9 @@ void setup() {                               // The setup routine beigns (runnin
 //   no parameters passed in
 //
 //   returns: none
+//  adapted by Group 3 of CSM1038 Oct-Dec 2021
 //---------------------------------------------------------------------------
 void loop() {                                // The loop routine beigns (running over and over, continuously).
-
-  //driveInSquare();    // try drive in square
 
   moveForward();                             // Here, we are calling the "moveForward function". This tells the Arduino to
                                              // run a set of code that is written below. 
@@ -79,13 +80,9 @@ void loop() {                                // The loop routine beigns (running
   delay(50);                               // "delay" is another example of a function, however this is included
                                              // in the Arduino system, so it knows what to do already.
                                              
-  //moveLeft();                                // The brackets in "moveLeft()" are empty because the function does not require
-                                             // any inputs, whereas "delay(1000)" needs to know the length of the delay
-  //delay(0);
-  //moveRight();                               // This will run the "moveRight" function, shown below. //
-  //delay(0);
 
-   // Clears the trigPin condition
+   // take an initial ultrasonic distance measurement
+   // Clears the ultrasonic trigPin condition
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
   // Sets the trigPin HIGH (ACTIVE) for 10 microseconds
@@ -101,19 +98,17 @@ void loop() {                                // The loop routine beigns (running
   Serial.print(distance);
   Serial.println(" cm");
 
+
+
+  // now in each run of the loop, check ultrasonically for something ahead before looping to drive forward again
   while (distance < avoidDistance) {
-    int counter;
     delay(0);   // slow down and stop for 1 second by delaying - or maybe not
-    //moveLeft();
     turnOnSpotLeft();
-    delay(500);   // how much to turn?
+    delay(500);   // how much to turn? keep turning-left-on-spot for 500mS
     Serial.println("Turning left to avoid");
-    counter++;
-    Serial.println("Distance:");
+    Serial.println("Distance: ");
     Serial.println(distance);
-    Serial.println("number of loops:");
-    Serial.println(counter);
-    distance = findDistance(trigPin, echoPin);
+    distance = findDistance(trigPin, echoPin);    // call function to check distance ultrasonically
   }
 
 }                                            // End of the loop routine.
@@ -131,17 +126,17 @@ void loop() {                                // The loop routine beigns (running
 void moveForward(){                          // This is the start of the "moveForward" function.
                                              // This function is a "void" as it does not return a value to the loop routine.
 
-  Serial.println("Forward");                 // This will tell you that the "moveForward" funtion is being called
+  Serial.println("Forward");                 // This will tell you that the "moveForward" function is being called
                                              // in the serial monitor (Tools > Serial monitor).
 
   digitalWrite(directionRightHigh, HIGH);    
   digitalWrite(directionRightLow, LOW);      // This tells the motors to go forward.
-  analogWrite(motorRight, 182);              // This sets the speed. - was 200
+  analogWrite(motorRight, 182);              // This sets the speed. - was 200 - can be altered to try to 'trim' vehicle motion
 
   digitalWrite(directionLeftHigh, HIGH);
   digitalWrite(directionLeftLow, LOW);
-  //analogWrite(motorLeft, 200);               // - was 200 (Q1) Roughly what voltage will this line output, and to what pin number?
-  analogWrite(motorLeft, 200);               // - was 200 (Q1) Roughly what voltage will this line output, and to what pin number?
+  //analogWrite(motorLeft, 200);               //
+  analogWrite(motorLeft, 200);               //
   
 }
 
@@ -225,6 +220,7 @@ void moveRight(){
 //   no parameters passed in
 //
 //   returns: none
+//   Group 3 of CSM1038 - Oct-Dec 2021
 //---------------------------------------------------------------------------
 void turnOnSpotLeft(){                          // This is the start of the "turnOnSpotLeft" function.
                                              // This function is a "void" as it does not return a value to the loop routine.
@@ -255,10 +251,12 @@ void turnOnSpotLeft(){                          // This is the start of the "tur
 // ----------------------------
 //   Measure the distance via 
 //
-//   tPin
-// ePin - echo pin
+//  Parameters:
+//   int tPin - trigger pin number on Arduino
+//   int ePin - echo pin number on Arduino
 //
 //   returns: distance as an integer
+//   Group 3 of CSM1038 - Oct-Dec 2021
 //---------------------------------------------------------------------------
 int findDistance(int tPin, int ePin)
 {
@@ -275,7 +273,7 @@ int findDistance(int tPin, int ePin)
   // Reads the echoPin, returns the sound wave travel time in microseconds
   duration = pulseIn(echoPin, HIGH);
   // Calculating the distance
-  distance = duration * 0.034 / 2; // Speed of sound wave divided by 2 (go and back)
+  distance = duration * 0.034 / 2; // Speed of sound wave divided by 2 (ultrasonic signal to go out and back)
   // Displays the distance on the Serial Monitor
   Serial.print("Distance: ");
   Serial.print(distance);
@@ -290,24 +288,24 @@ int findDistance(int tPin, int ePin)
 // ----------------------------
 //   Drive in a square, turning left, to end on start point hopefully 
 //
-
-//
+//    Parameters: none
 //   returns: nothing
+//   Group 3 of CSM1038 - Oct-Dec 2021
 //---------------------------------------------------------------------------
 void driveInSquare()
 {
   moveForward();  // go forward
   delay(2000);
-  turnOnSpotLeft(); // turn on spot (90)
-  delay(500);   // how much to turn?
+  turnOnSpotLeft(); // turn on spot (90°)
+  delay(500);   // how much to turn? - turn for 500mS
   moveForward(); // go forwarrd again
   delay(2000);
-  turnOnSpotLeft(); // turn on spot (180)
-  delay(500);   // how much to turn?
+  turnOnSpotLeft(); // turn on spot (180°)
+  delay(500);   // how much to turn? - turn for 500mS
   moveForward(); // go forward 
   delay(2000);
-  turnOnSpotLeft(); // turn on spot (270)
-  delay(500);   // how much to turn?
+  turnOnSpotLeft(); // turn on spot (270°)
+  delay(500);   // how much to turn? - turn for 500mS
   moveForward(); // go forward
   delay(2000);
 }
